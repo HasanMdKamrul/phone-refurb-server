@@ -68,19 +68,19 @@ app.put("/users", async (req, res) => {
 
     const adminUser = await userCollection.findOne(filter);
 
-    console.log(adminUser.role);
+    console.log(adminUser);
 
-    if (adminUser.role === "admin") {
+    if (adminUser && adminUser.role === "admin") {
       return;
-    } else {
-      const user = await userCollection.updateOne(filter, updatedDoc, options);
-
-      return res.send({
-        success: true,
-        data: user,
-        message: "User created successfully",
-      });
     }
+
+    const user = await userCollection.updateOne(filter, updatedDoc, options);
+
+    return res.send({
+      success: true,
+      data: user,
+      message: "User created successfully",
+    });
   } catch (error) {
     res.send({
       success: false,
