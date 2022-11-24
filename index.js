@@ -44,7 +44,7 @@ const verifyJWT = async (req, res, next) => {
   });
 };
 
-const verifyAdmin = async (req, res, next) => {
+const verifySeller = async (req, res, next) => {
   const emailDecoded = req.decoded.email;
 
   console.log(emailDecoded);
@@ -239,7 +239,7 @@ app.get("/categories", async (req, res) => {
 
 // ** Products Apis -> Add product
 
-app.post("/addproduct", verifyJWT, verifyAdmin, async (req, res) => {
+app.post("/addproduct", async (req, res) => {
   try {
     const productData = req.body;
 
@@ -265,7 +265,7 @@ app.post("/addproduct", verifyJWT, verifyAdmin, async (req, res) => {
 
 // ** Get All Seller products
 
-app.get("/products", verifyJWT, verifyAdmin, async (req, res) => {
+app.get("/products", verifyJWT, verifySeller, async (req, res) => {
   try {
     const email = req.query.email;
 
