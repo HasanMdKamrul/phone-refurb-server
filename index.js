@@ -171,6 +171,53 @@ app.get("/usersrole", async (req, res) => {
   }
 });
 
+// ** get all seller user and all buyer user
+
+app.get("/users", async (req, res) => {
+  try {
+    const role = req.query.role;
+    console.log(role);
+    const filter = {
+      role: role,
+    };
+
+    const sellerAndbuyers = await userCollection.find(filter).toArray();
+    console.log(sellerAndbuyers);
+
+    return res.send({
+      success: true,
+      data: sellerAndbuyers,
+    });
+  } catch (error) {
+    res.send({
+      success: false,
+      message: error.message,
+    });
+  }
+});
+
+// ** Delete seller or buyer
+
+app.delete("/users/:id", async (req, res) => {
+  try {
+    const id = req.params.id;
+    console.log(id);
+    const filter = {
+      _id: ObjectId(id),
+    };
+    const result = await userCollection.deleteOne(filter);
+    return res.send({
+      success: true,
+      data: result,
+    });
+  } catch (error) {
+    res.send({
+      success: false,
+      message: error.message,
+    });
+  }
+});
+
 // **** Category Apis
 
 app.get("/categories", async (req, res) => {
@@ -195,6 +242,14 @@ app.get("/categories", async (req, res) => {
 app.post("/addproduct", verifyJWT, verifyAdmin, async (req, res) => {
   try {
     const productData = req.body;
+
+    if (productData.sellerEmail !== req.decoded.email) {
+      return res.status(401).send({
+        success: false,
+        message: "Unauthorised access",
+      });
+    }
+
     const result = await productCollection.insertOne(productData);
     return res.send({
       success: true,
@@ -213,6 +268,15 @@ app.post("/addproduct", verifyJWT, verifyAdmin, async (req, res) => {
 app.get("/products", verifyJWT, verifyAdmin, async (req, res) => {
   try {
     const email = req.query.email;
+
+    console.log(req.decoded.email);
+
+    if (req.decoded.email !== email) {
+      return res.status(401).send({
+        success: false,
+        message: "Unauthorised access",
+      });
+    }
 
     const filter = {
       sellerEmail: email,
