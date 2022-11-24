@@ -16,6 +16,63 @@ app.use(express.json());
 // ** Test Api
 app.get("/", (req, res) => res.send("Server is running - phone-refurb"));
 
+// ** verifyJWT -middleware
+
+const verifyJWT = async (req, res, next) => {
+  const authHeader = req.headers.authorization;
+
+  if (!authHeader) {
+    return res.status(401).send({
+      success: false,
+      message: "Unauthorised access",
+    });
+  }
+
+  // ** verify token
+  const token = authHeader.split(" ")[1];
+
+  jwt.verify(token, process.env.ACCESS_SECRET_TOKEN, (err, decoded) => {
+    if (err) {
+      return res.status(401).send({
+        success: false,
+        message: "Unauthorised access",
+      });
+    } else {
+      req.decoded = decoded;
+      next();
+    }
+  });
+};
+
+const verifyAdmin = async (req, res, next) => {
+  const emailDecoded = req.decoded.email;
+
+  console.log(emailDecoded);
+
+  if (!emailDecoded) {
+    return res.status(401).send({
+      success: false,
+      message: "unauthorised access",
+    });
+  }
+
+  const filter = {
+    email: emailDecoded,
+  };
+
+  const isSeller = await userCollection.findOne(filter);
+  console.log(isSeller);
+
+  if (isSeller.role !== "seller") {
+    return res.status(401).send({
+      success: false,
+      message: "Unauthorised access",
+    });
+  }
+
+  next();
+};
+
 // ********* DB CONNECTION *********
 
 const uri = `${process.env.DB_URI}`;
@@ -89,6 +146,31 @@ app.put("/users", async (req, res) => {
   }
 });
 
+// ** Get a single user role
+
+app.get("/usersrole", async (req, res) => {
+  try {
+    console.log(req.query.email);
+
+    const email = req.query.email;
+    const filter = {
+      email: email,
+    };
+
+    const user = await userCollection.findOne(filter);
+
+    return res.send({
+      success: true,
+      data: user.role,
+    });
+  } catch (error) {
+    res.send({
+      success: false,
+      message: error.message,
+    });
+  }
+});
+
 // **** Category Apis
 
 app.get("/categories", async (req, res) => {
@@ -110,13 +192,37 @@ app.get("/categories", async (req, res) => {
 
 // ** Products Apis -> Add product
 
-app.post("/addproduct", async (req, res) => {
+app.post("/addproduct", verifyJWT, verifyAdmin, async (req, res) => {
   try {
     const productData = req.body;
     const result = await productCollection.insertOne(productData);
     return res.send({
       success: true,
       data: result,
+    });
+  } catch (error) {
+    res.send({
+      success: false,
+      message: error.message,
+    });
+  }
+});
+
+// ** Get All Seller products
+
+app.get("/products", verifyJWT, verifyAdmin, async (req, res) => {
+  try {
+    const email = req.query.email;
+
+    const filter = {
+      sellerEmail: email,
+    };
+
+    const products = await productCollection.find(filter).toArray();
+
+    return res.send({
+      success: true,
+      data: products,
     });
   } catch (error) {
     res.send({
