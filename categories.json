@@ -1,14 +1,17 @@
 [
   {
     "categoryName": "Battery Health",
+    "categoryDescription": "Battery Health is a measure of the battery's ability to hold a charge. A battery with a high health rating is able to hold a charge for a longer period of time.",
     "categoryImage": "https://img.freepik.com/free-vector/battery-runtime-abstract-concept-illustration_335657-1886.jpg?w=826&t=st=1669237846~exp=1669238446~hmac=ffaf8693b1f6415e19049f7edbc754b20096631792c607b330e16cf428e9e6fe"
   },
   {
     "categoryName": "Budget Friendly",
+    "categoryDescription": "Budget friendly mobile phones are those that are priced as low. These phones are ideal for those who are looking for a phone that is affordable and has all the basic features.",
     "categoryImage": "https://img.freepik.com/free-vector/couple-planning-honeymoon-holiday-choosing-trip-destination-flat-characters_335657-2499.jpg?w=1380&t=st=1669237904~exp=1669238504~hmac=6b9c2718d9d2211fbe891ddb7d7bcaeb518b02d1acc92f6d9f22438a25893da0"
   },
   {
     "categoryName": "Like New",
+    "categoryDescription": "Like new mobile phones are those that are in excellent condition. These phones are ideal for those who are looking for a phone that is in excellent condition and has all the basic features.",
     "categoryImage": "https://img.freepik.com/premium-vector/iphone-14-pro-screen-template-woman-love-vector-modern_651993-436.jpg?w=826"
   }
 ]
