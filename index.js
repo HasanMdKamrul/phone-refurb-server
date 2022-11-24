@@ -72,6 +72,34 @@ const verifySeller = async (req, res, next) => {
 
   next();
 };
+const verifyAdmin = async (req, res, next) => {
+  const emailDecoded = req.decoded.email;
+
+  console.log(emailDecoded);
+
+  if (!emailDecoded) {
+    return res.status(401).send({
+      success: false,
+      message: "unauthorised access",
+    });
+  }
+
+  const filter = {
+    email: emailDecoded,
+  };
+
+  const isAdmin = await userCollection.findOne(filter);
+  console.log(isAdmin);
+
+  if (isAdmin.role !== "admin") {
+    return res.status(401).send({
+      success: false,
+      message: "Unauthorised access",
+    });
+  }
+
+  next();
+};
 
 // ********* DB CONNECTION *********
 
@@ -173,7 +201,7 @@ app.get("/usersrole", async (req, res) => {
 
 // ** get all seller user and all buyer user
 
-app.get("/users", async (req, res) => {
+app.get("/users", verifyJWT, verifyAdmin, async (req, res) => {
   try {
     const role = req.query.role;
     console.log(role);
@@ -198,7 +226,7 @@ app.get("/users", async (req, res) => {
 
 // ** Delete seller or buyer
 
-app.delete("/users/:id", async (req, res) => {
+app.delete("/users/:id", verifyJWT, async (req, res) => {
   try {
     const id = req.params.id;
     console.log(id);
@@ -243,13 +271,6 @@ app.post("/addproduct", async (req, res) => {
   try {
     const productData = req.body;
 
-    if (productData.sellerEmail !== req.decoded.email) {
-      return res.status(401).send({
-        success: false,
-        message: "Unauthorised access",
-      });
-    }
-
     const result = await productCollection.insertOne(productData);
     return res.send({
       success: true,
@@ -269,7 +290,9 @@ app.get("/products", verifyJWT, verifySeller, async (req, res) => {
   try {
     const email = req.query.email;
 
-    console.log(req.decoded.email);
+    console.log("query Email", email);
+
+    console.log("decoded", req.decoded.email);
 
     if (req.decoded.email !== email) {
       return res.status(401).send({
