@@ -47,7 +47,7 @@ const verifyJWT = async (req, res, next) => {
 const verifySeller = async (req, res, next) => {
   const emailDecoded = req.decoded.email;
 
-  console.log(emailDecoded);
+  //   console.log(emailDecoded);
 
   if (!emailDecoded) {
     return res.status(401).send({
@@ -61,7 +61,7 @@ const verifySeller = async (req, res, next) => {
   };
 
   const isSeller = await userCollection.findOne(filter);
-  console.log(isSeller);
+  //   console.log(isSeller);
 
   if (isSeller.role !== "seller") {
     return res.status(401).send({
@@ -75,7 +75,7 @@ const verifySeller = async (req, res, next) => {
 const verifyAdmin = async (req, res, next) => {
   const emailDecoded = req.decoded.email;
 
-  console.log(emailDecoded);
+  //   console.log(emailDecoded);
 
   if (!emailDecoded) {
     return res.status(401).send({
@@ -89,7 +89,7 @@ const verifyAdmin = async (req, res, next) => {
   };
 
   const isAdmin = await userCollection.findOne(filter);
-  console.log(isAdmin);
+  //   console.log(isAdmin);
 
   if (isAdmin.role !== "admin") {
     return res.status(401).send({
@@ -153,7 +153,7 @@ app.put("/users", async (req, res) => {
 
     const adminUser = await userCollection.findOne(filter);
 
-    console.log(adminUser);
+    // console.log(adminUser);
 
     if (adminUser && adminUser.role === "admin") {
       return;
@@ -178,7 +178,7 @@ app.put("/users", async (req, res) => {
 
 app.get("/usersrole", async (req, res) => {
   try {
-    console.log(req.query.email);
+    // console.log(req.query.email);
 
     const email = req.query.email;
     const filter = {
@@ -204,13 +204,13 @@ app.get("/usersrole", async (req, res) => {
 app.get("/users", verifyJWT, verifyAdmin, async (req, res) => {
   try {
     const role = req.query.role;
-    console.log(role);
+    // console.log(role);
     const filter = {
       role: role,
     };
 
     const sellerAndbuyers = await userCollection.find(filter).toArray();
-    console.log(sellerAndbuyers);
+    // console.log(sellerAndbuyers);
 
     return res.send({
       success: true,
@@ -229,7 +229,7 @@ app.get("/users", verifyJWT, verifyAdmin, async (req, res) => {
 app.delete("/users/:id", verifyJWT, async (req, res) => {
   try {
     const id = req.params.id;
-    console.log(id);
+    // console.log(id);
     const filter = {
       _id: ObjectId(id),
     };
@@ -290,9 +290,9 @@ app.get("/products", verifyJWT, verifySeller, async (req, res) => {
   try {
     const email = req.query.email;
 
-    console.log("query Email", email);
+    // console.log("query Email", email);
 
-    console.log("decoded", req.decoded.email);
+    // console.log("decoded", req.decoded.email);
 
     if (req.decoded.email !== email) {
       return res.status(401).send({
@@ -334,6 +334,68 @@ app.get("/products/:id", async (req, res) => {
       success: true,
       data: products,
     });
+  } catch (error) {
+    res.send({
+      success: false,
+      message: error.message,
+    });
+  }
+});
+
+// ** addvertiseproducts
+
+app.put("/advertiseproducts/:id", async (req, res) => {
+  try {
+    const id = req.params.id;
+    const updatedProduct = req.body;
+    console.log(updatedProduct);
+
+    const filter = {
+      _id: ObjectId(id),
+    };
+
+    const updatedDoc = {
+      $set: {
+        advertise: updatedProduct.advertise,
+        report: updatedProduct.reported,
+      },
+    };
+
+    const options = { upsert: true };
+
+    const result = await productCollection.updateOne(
+      filter,
+      updatedDoc,
+      options
+    );
+
+    return res.send({
+      success: true,
+      data: result,
+    });
+  } catch (error) {
+    res.send({
+      success: false,
+      message: error.message,
+    });
+  }
+});
+
+// ** Get all the advertise products
+
+app.get("/advertiseproducts", async (req, res) => {
+  try {
+    const advertise = req.query.advertise;
+
+    console.log(typeof advertise);
+
+    const filter = {
+      advertise,
+    };
+
+    const advertiseProducts = await productCollection.find(filter).toArray();
+    console.log(advertiseProducts);
+    res.send(advertiseProducts);
   } catch (error) {
     res.send({
       success: false,
