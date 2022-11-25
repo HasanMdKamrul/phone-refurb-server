@@ -128,6 +128,7 @@ const categoryCollection = client
   .collection("categories");
 const productCollection = client.db("phone-refurb-db").collection("products");
 const userCollection = client.db("phone-refurb-db").collection("users");
+const orderCollection = client.db("phone-refurb-db").collection("orders");
 
 // ** DB Collections
 
@@ -368,9 +369,19 @@ app.delete("/products/:id", async (req, res) => {
 
 // ** addvertiseproducts
 
-app.put("/advertiseproducts/:id", async (req, res) => {
+app.put("/advertiseproducts/:id", verifyJWT, async (req, res) => {
   try {
     const id = req.params.id;
+
+    const email = req.query.email;
+
+    if (req.decoded.email !== email) {
+      return res.status(401).send({
+        success: false,
+        message: "Unauthorised access",
+      });
+    }
+
     const updatedProduct = req.body;
     console.log(updatedProduct);
 
@@ -443,6 +454,76 @@ app.get("/reportedproducts", async (req, res) => {
 
     console.log(reportedProducts);
     res.send(reportedProducts);
+  } catch (error) {
+    res.send({
+      success: false,
+      message: error.message,
+    });
+  }
+});
+
+// ** Seller verification
+
+app.put("/sellerverify/:id", async (req, res) => {
+  try {
+    const id = req.params.id;
+    console.log(id);
+    const verifyStatus = req.body.verifyStatus;
+    const filter = {
+      _id: ObjectId(id),
+    };
+
+    const updatedDocument = {
+      $set: {
+        verifyStatus: verifyStatus,
+      },
+    };
+
+    const options = { upsert: true };
+
+    const verifySeller = await userCollection.updateOne(
+      filter,
+      updatedDocument,
+      options
+    );
+
+    return res.send({
+      success: true,
+      data: verifySeller,
+    });
+  } catch (error) {
+    res.send({
+      success: false,
+      message: error.message,
+    });
+  }
+});
+
+// ** seller verified data
+
+app.get("/sellervirified", async (req, res) => {
+  try {
+    const email = req.query.email;
+
+    const filter = {
+      email: email,
+    };
+
+    const sellerData = await userCollection.findOne(filter);
+
+    res.send(sellerData);
+  } catch (error) {
+    console.log(error.message);
+  }
+});
+
+// ** Orders Apis
+
+app.post("/orders", async (req, res) => {
+  try {
+    const order = req.body;
+    const result = await orderCollection.insertOne(order);
+    res.send(result);
   } catch (error) {
     res.send({
       success: false,
