@@ -341,6 +341,30 @@ app.get("/products/:id", async (req, res) => {
     });
   }
 });
+// ** Delete a product which is reported
+
+app.delete("/products/:id", async (req, res) => {
+  try {
+    const id = req.params.id;
+    console.log(id);
+
+    const filter = {
+      _id: ObjectId(id),
+    };
+
+    const result = await productCollection.deleteOne(filter);
+
+    return res.send({
+      success: true,
+      data: result,
+    });
+  } catch (error) {
+    res.send({
+      success: false,
+      message: error.message,
+    });
+  }
+});
 
 // ** addvertiseproducts
 
@@ -396,6 +420,29 @@ app.get("/advertiseproducts", async (req, res) => {
     const advertiseProducts = await productCollection.find(filter).toArray();
     console.log(advertiseProducts);
     res.send(advertiseProducts);
+  } catch (error) {
+    res.send({
+      success: false,
+      message: error.message,
+    });
+  }
+});
+
+// ** get all reported products
+
+app.get("/reportedproducts", async (req, res) => {
+  try {
+    const reported = req.query.reported;
+    console.log(reported);
+
+    const filter = {
+      report: reported,
+    };
+
+    const reportedProducts = await productCollection.find(filter).toArray();
+
+    console.log(reportedProducts);
+    res.send(reportedProducts);
   } catch (error) {
     res.send({
       success: false,
