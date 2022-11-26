@@ -532,6 +532,52 @@ app.put("/advertiseproducts/:id", verifyJWT, verifySeller, async (req, res) => {
     });
   }
 });
+app.put("/reportedproducts/:id", verifyJWT, verifyBuyer, async (req, res) => {
+  try {
+    const id = req.params.id;
+
+    const email = req.query.email;
+
+    if (req.decoded.email !== email) {
+      return res.status(401).send({
+        success: false,
+        message: "Unauthorised access",
+      });
+    }
+
+    const updatedProduct = req.body;
+    console.log(updatedProduct);
+
+    const filter = {
+      _id: ObjectId(id),
+    };
+
+    const updatedDoc = {
+      $set: {
+        advertise: updatedProduct.advertise,
+        report: updatedProduct.reported,
+      },
+    };
+
+    const options = { upsert: true };
+
+    const result = await productCollection.updateOne(
+      filter,
+      updatedDoc,
+      options
+    );
+
+    return res.send({
+      success: true,
+      data: result,
+    });
+  } catch (error) {
+    res.send({
+      success: false,
+      message: error.message,
+    });
+  }
+});
 
 // ** Get all the advertise products
 
