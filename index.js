@@ -437,7 +437,7 @@ app.get("/products/:id", verifyJWT, verifyBuyer, async (req, res) => {
 });
 // ** Delete a product which is reported
 
-app.delete("/products/:id", async (req, res) => {
+app.delete("/products/:id", verifyJWT, verifyAdmin, async (req, res) => {
   try {
     const id = req.params.id;
     console.log(id);
@@ -534,7 +534,7 @@ app.get("/advertiseproducts", verifyJWT, verifyBuyer, async (req, res) => {
 
 // ** get all reported products
 
-app.get("/reportedproducts", async (req, res) => {
+app.get("/reportedproducts", verifyJWT, verifyAdmin, async (req, res) => {
   try {
     const reported = req.query.reported;
     console.log(reported);
