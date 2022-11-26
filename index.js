@@ -320,7 +320,7 @@ app.get("/users", verifyJWT, verifyAdmin, async (req, res) => {
 
 // ** Delete seller or buyer
 
-app.delete("/users/:id", verifyJWT, async (req, res) => {
+app.delete("/users/:id", verifyJWT, verifyAdmin, async (req, res) => {
   try {
     const id = req.params.id;
     // console.log(id);
@@ -557,7 +557,7 @@ app.get("/reportedproducts", async (req, res) => {
 
 // ** Seller verification
 
-app.put("/sellerverify/:id", async (req, res) => {
+app.put("/sellerverify/:id", verifyJWT, verifyAdmin, async (req, res) => {
   try {
     const id = req.params.id;
     console.log(id);
