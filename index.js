@@ -461,7 +461,7 @@ app.delete("/products/:id", verifyJWT, verifyAdmin, async (req, res) => {
 });
 // ** Delete a product which is reported
 
-app.delete("/paymentproducts/:id", verifyJWT, verifyBuyer, async (req, res) => {
+app.delete("/sellerproducts/:id", verifyJWT, verifySeller, async (req, res) => {
   try {
     const id = req.params.id;
     console.log(id);
@@ -532,6 +532,8 @@ app.put("/advertiseproducts/:id", verifyJWT, verifySeller, async (req, res) => {
     });
   }
 });
+
+// ** Reported products
 app.put("/reportedproducts/:id", verifyJWT, verifyBuyer, async (req, res) => {
   try {
     const id = req.params.id;
@@ -571,6 +573,43 @@ app.put("/reportedproducts/:id", verifyJWT, verifyBuyer, async (req, res) => {
       success: true,
       data: result,
     });
+  } catch (error) {
+    res.send({
+      success: false,
+      message: error.message,
+    });
+  }
+});
+
+// ** Put the paid status into main products collection
+
+app.put("/products/:id", async (req, res) => {
+  try {
+    console.log("products put");
+    console.log(req.params.id);
+    console.log(req.body);
+
+    const id = req.params.id;
+
+    const filter = {
+      _id: ObjectId(id),
+    };
+
+    const updatedDoc = {
+      $set: {
+        paid: req.body.paid,
+      },
+    };
+
+    const options = { upsert: true };
+
+    const result = await productCollection.updateOne(
+      filter,
+      updatedDoc,
+      options
+    );
+
+    res.send(result);
   } catch (error) {
     res.send({
       success: false,
