@@ -5,8 +5,7 @@ require("dotenv").config();
 const app = express();
 const port = process.env.PORT || 15000;
 const jwt = require("jsonwebtoken");
-// const jwt = require("jsonwebtoken");
-// const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
+const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 
 // ** Middleware
 
@@ -20,6 +19,8 @@ app.get("/", (req, res) => res.send("Server is running - phone-refurb"));
 
 const verifyJWT = async (req, res, next) => {
   const authHeader = req.headers.authorization;
+
+  console.log(authHeader);
 
   if (!authHeader) {
     return res.status(401).send({
@@ -64,6 +65,34 @@ const verifySeller = async (req, res, next) => {
   //   console.log(isSeller);
 
   if (isSeller.role !== "seller") {
+    return res.status(401).send({
+      success: false,
+      message: "Unauthorised access",
+    });
+  }
+
+  next();
+};
+const verifyBuyer = async (req, res, next) => {
+  const emailDecoded = req.decoded.email;
+
+  //   console.log(emailDecoded);
+
+  if (!emailDecoded) {
+    return res.status(401).send({
+      success: false,
+      message: "unauthorised access",
+    });
+  }
+
+  const filter = {
+    email: emailDecoded,
+  };
+
+  const isBuyer = await userCollection.findOne(filter);
+  //   console.log(isSeller);
+
+  if (isBuyer.role !== "buyer") {
     return res.status(401).send({
       success: false,
       message: "Unauthorised access",
@@ -129,8 +158,72 @@ const categoryCollection = client
 const productCollection = client.db("phone-refurb-db").collection("products");
 const userCollection = client.db("phone-refurb-db").collection("users");
 const orderCollection = client.db("phone-refurb-db").collection("orders");
+const paymentCollection = client.db("phone-refurb-db").collection("payments");
 
 // ** DB Collections
+
+// *** Payments
+
+// ** Stripe payment intent handle
+
+app.post("/create-payment-intent", verifyJWT, verifyBuyer, async (req, res) => {
+  const order = req.body;
+  const price = order.price;
+
+  // ** Need to convert it into cents
+  const amount = price * 100;
+
+  const paymentIntent = await stripe.paymentIntents.create({
+    amount,
+    currency: "usd",
+    payment_method_types: ["card"],
+  });
+
+  res.send({
+    clientSecret: paymentIntent.client_secret,
+  });
+});
+
+// ** Saving Payment Information
+
+app.post("/payments", verifyJWT, verifyBuyer, async (req, res) => {
+  try {
+    const payment = req.body;
+
+    console.log(payment);
+
+    const insertPayment = await paymentCollection.insertOne(payment);
+
+    const orderId = payment.orderId;
+    const transectionId = payment.transectionId;
+    const price = payment.price;
+
+    // ** Filtering the order and update for paid status
+    const filter = {
+      _id: ObjectId(orderId),
+    };
+
+    const updatedDoc = {
+      $set: {
+        transectionId: transectionId,
+        paid: true,
+      },
+    };
+
+    const orderUpdate = await orderCollection.updateOne(filter, updatedDoc);
+
+    return res.send({
+      success: true,
+      data: insertPayment,
+      orderData: orderUpdate,
+    });
+  } catch (error) {
+    res.send({
+      success: false,
+      message: "Payment cann't be successfull",
+    });
+  }
+});
 
 // ** DB RUN
 
@@ -322,7 +415,7 @@ app.get("/products", verifyJWT, verifySeller, async (req, res) => {
 
 // ** get products using product category id
 
-app.get("/products/:id", async (req, res) => {
+app.get("/products/:id", verifyJWT, verifyBuyer, async (req, res) => {
   try {
     const id = req.params.id;
     const query = {
@@ -418,18 +511,18 @@ app.put("/advertiseproducts/:id", verifyJWT, async (req, res) => {
 
 // ** Get all the advertise products
 
-app.get("/advertiseproducts", async (req, res) => {
+app.get("/advertiseproducts", verifyJWT, verifyBuyer, async (req, res) => {
   try {
     const advertise = req.query.advertise;
 
-    console.log(typeof advertise);
+    // console.log(typeof advertise);
 
     const filter = {
       advertise,
     };
 
     const advertiseProducts = await productCollection.find(filter).toArray();
-    console.log(advertiseProducts);
+    // console.log(advertiseProducts);
     res.send(advertiseProducts);
   } catch (error) {
     res.send({
@@ -519,11 +612,50 @@ app.get("/sellervirified", async (req, res) => {
 
 // ** Orders Apis
 
-app.post("/orders", async (req, res) => {
+app.post("/orders", verifyJWT, verifyBuyer, async (req, res) => {
   try {
     const order = req.body;
+    const email = order.buyerEmail;
+
+    if (email !== req.decoded.email) {
+      return res.send(401).send({
+        success: false,
+        message: "Unauthorised access",
+      });
+    }
+
     const result = await orderCollection.insertOne(order);
     res.send(result);
+  } catch (error) {
+    res.send({
+      success: false,
+      message: error.message,
+    });
+  }
+});
+
+// ** get the orders according to user email
+
+app.get("/orders/:email", verifyJWT, verifyBuyer, async (req, res) => {
+  try {
+    const email = req.params.email;
+
+    if (req.decoded.email !== email) {
+      return res.status(401).send({
+        success: false,
+        message: "Unauthorised access",
+      });
+    }
+
+    console.log(email);
+
+    const filter = {
+      buyerEmail: email,
+    };
+
+    const orderedProducts = await orderCollection.find(filter).toArray();
+
+    res.send(orderedProducts);
   } catch (error) {
     res.send({
       success: false,
