@@ -459,6 +459,30 @@ app.delete("/products/:id", verifyJWT, verifyAdmin, async (req, res) => {
     });
   }
 });
+// ** Delete a product which is reported
+
+app.delete("/paymentproducts/:id", verifyJWT, verifyBuyer, async (req, res) => {
+  try {
+    const id = req.params.id;
+    console.log(id);
+
+    const filter = {
+      _id: ObjectId(id),
+    };
+
+    const result = await productCollection.deleteOne(filter);
+
+    return res.send({
+      success: true,
+      data: result,
+    });
+  } catch (error) {
+    res.send({
+      success: false,
+      message: error.message,
+    });
+  }
+});
 
 // ** addvertiseproducts
 
