@@ -361,7 +361,7 @@ app.get("/categories", async (req, res) => {
 
 // ** Products Apis -> Add product
 
-app.post("/addproduct", async (req, res) => {
+app.post("/addproduct", verifyJWT, verifySeller, async (req, res) => {
   try {
     const productData = req.body;
 
@@ -462,7 +462,7 @@ app.delete("/products/:id", async (req, res) => {
 
 // ** addvertiseproducts
 
-app.put("/advertiseproducts/:id", verifyJWT, async (req, res) => {
+app.put("/advertiseproducts/:id", verifyJWT, verifySeller, async (req, res) => {
   try {
     const id = req.params.id;
 
