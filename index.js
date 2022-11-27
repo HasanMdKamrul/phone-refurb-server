@@ -159,6 +159,7 @@ const productCollection = client.db("phone-refurb-db").collection("products");
 const userCollection = client.db("phone-refurb-db").collection("users");
 const orderCollection = client.db("phone-refurb-db").collection("orders");
 const paymentCollection = client.db("phone-refurb-db").collection("payments");
+const blogCollection = client.db("phone-refurb-db").collection("blogs");
 
 // ** DB Collections
 
@@ -435,6 +436,27 @@ app.get("/products/:id", verifyJWT, verifyBuyer, async (req, res) => {
     });
   }
 });
+
+// ** get a specific product using its id
+
+app.get("/productspaid/:id", async (req, res) => {
+  try {
+    // console.log(req.params.id);
+    const filter = {
+      _id: ObjectId(req.params.id),
+    };
+
+    const product = await productCollection.findOne(filter);
+    // console.log(product);
+    res.send(product);
+  } catch (error) {
+    res.send({
+      success: false,
+      message: error.message,
+    });
+  }
+});
+
 // ** Delete a product which is reported
 
 app.delete("/products/:id", verifyJWT, verifyAdmin, async (req, res) => {
@@ -804,6 +826,23 @@ app.get("/jwt", async (req, res) => {
       success: true,
       token,
     });
+  } catch (error) {
+    res.send({
+      success: false,
+      message: error.message,
+    });
+  }
+});
+
+// ** Blogs data get
+
+app.get("/blogs", async (req, res) => {
+  try {
+    const query = {};
+
+    const blogs = await blogCollection.find(query).toArray();
+
+    res.send(blogs);
   } catch (error) {
     res.send({
       success: false,

@@ -1,0 +1,18 @@
+[
+  {
+    "question": "What are the different ways to manage a state in a React application?",
+    "answer": "There are many ways to manage a state in a React application. One of them is context API, another one is Redux, and another one is MobX. All of them have their own pros and cons. "
+  },
+  {
+    "question": "How does prototypical inheritance work?",
+    "answer": "Prototypical inheritance is a way of implementing inheritance in JavaScript. It is based on the concept of prototypes. In addition to the properties and methods that are defined on an object, each object has a prototype object. The prototype object has a prototype object of its own, and so on until an object is reached with null as its prototype. By definition, null has no prototype, and acts as the final link in this prototype chain."
+  },
+  {
+    "question": "What is a unit test? Why should we write unit tests?",
+    "answer": "A unit test is a piece of code that tests a small unit of functionality in your application. Unit tests are written by developers to ensure that a section of an application (known as the \"unit\") meets its design and behaves as intended. Unit tests are written during the development phase of an application. They are used to ensure that each unit of the software performs as designed. Unit tests are written by developers to ensure that a section of an application (known as the \"unit\") meets its design and behaves as intended. Unit tests are written during the development phase of an application. They are used to ensure that each unit of the software performs as designed."
+  },
+  {
+    "question": "React vs. Angular vs. Vue?",
+    "answer": "React is a JavaScript library for building user interfaces. Angular is a TypeScript-based open-source web application framework led by the Angular Team at Google and by a community of individuals and corporations. Vue.js is an open-source model–view–viewmodel front end JavaScript framework for building user interfaces and single-page applications. "
+  }
+]
